@@ -1,0 +1,50 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: eventmaster-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: eventmaster
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - eventmaster-network
+
+  backend:
+    build: ./backend
+    container_name: eventmaster-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: eventmaster
+      DB_PORT: 3306
+      JWT_SECRET: moj_tajni_kljuc_za_jwt_12345
+      PORT: 5000
+    depends_on:
+      - mysql
+    networks:
+      - eventmaster-network
+
+  frontend:
+    build: ./frontend
+    container_name: eventmaster-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - eventmaster-network
+
+volumes:
+  mysql_data:
+
+networks:
+  eventmaster-network:
+    driver: bridge
